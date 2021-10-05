@@ -15,7 +15,7 @@ import locale
 locale.setlocale(locale.LC_TIME,'fr_FR')
 
 # LOCAL
-from errors import ArgumentsError, Error
+from errors import ArgumentsError, CreatingCopyError, Error
 
 ## GLOBAL VARIABLES
 TODAY = date.today()
@@ -40,15 +40,19 @@ def main():
         gmail_service = build('gmail', 'v1', credentials=creds)
 
         copy_id = copy_template(drive_service, template_id)
-        if copy_id is not None:
-            edit_document(docs_service, copy_id)
-            copy_document = retrieve_document(docs_service, copy_id)
-            print('La quittance {} a été correctement créée 🎉🎉🎉'.format(copy_document.get('title')))
+        if copy_id is None:
+            raise CreatingCopyError
+
+        edit_document(docs_service, copy_id)
+        copy_document = retrieve_document(docs_service, copy_id)
+        print('La quittance {} a été correctement créée 🎉🎉🎉'.format(copy_document.get('title')))
 
         send_email(gmail_service, tenant_email)
 
     except ArgumentsError:
         print('❌ Nom du dossier contenant les informations absent')
+    except CreatingCopyError:
+        print('❌ La copie n\'a pas pu être créée')
     except HTTPError as error:
         print(error)
     except Error as error:
