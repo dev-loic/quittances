@@ -6,10 +6,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/documents.readonly']
-
-# The ID of a sample document.
-DOCUMENT_ID = '1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE'
+SCOPES = ['https://www.googleapis.com/auth/documents']
 
 def main():
     """Shows basic usage of the Docs API.
@@ -34,12 +31,14 @@ def main():
             token.write(creds.to_json())
 
     service = build('docs', 'v1', credentials=creds)
+    template = retrieve_template(service)
 
-    # Retrieve the documents contents from the Docs service.
-    document = service.documents().get(documentId=DOCUMENT_ID).execute()
+    print('The title of the document is: {}'.format(template.get('title')))
 
-    print('The title of the document is: {}'.format(document.get('title')))
 
+def retrieve_template(service):
+    DOCUMENT_ID = '1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE'
+    return service.documents().get(documentId=DOCUMENT_ID).execute()
 
 if __name__ == '__main__':
     main()
