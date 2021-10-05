@@ -14,9 +14,16 @@ SCOPES = [
 TEMPLATE_ID = '1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE'
 
 def main():
-    """Shows basic usage of the Docs API.
-    Prints the title of a sample document.
-    """
+    creds = retrieve_and_persist_credentials()
+    docs_service = build('docs', 'v1', credentials=creds)
+    drive_service = service = build('drive', 'v3', credentials=creds)
+
+    copy_id = copy_template(drive_service)
+    if copy_id is not None:
+        copy_document = retrieve_document(docs_service, copy_id)
+        print('The title of the document is: {}'.format(copy_document.get('title')))
+
+def retrieve_and_persist_credentials():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -29,21 +36,15 @@ def main():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                'credentials.json',
+                SCOPES
+            )
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
-    docs_service = build('docs', 'v1', credentials=creds)
-    drive_service = service = build('drive', 'v3', credentials=creds)
-
-    copy_id = copy_template(drive_service)
-    if copy_id is not None:
-        copy_document = retrieve_document(docs_service, copy_id)
-        print(copy_document)
-        # print('The title of the document is: {}'.format(copy_document.get('title')))
-
+    return creds
 
 def retrieve_document(docs_service, id):
     return docs_service.documents().get(documentId=id).execute()
