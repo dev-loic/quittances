@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os.path
+import sys
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -8,6 +9,9 @@ from datetime import date
 from calendar import monthrange
 import locale
 locale.setlocale(locale.LC_TIME,'fr_FR')
+
+# LOCAL
+from errors import ArgumentsError
 
 ## GLOBAL VARIABLES
 TODAY = date.today()
@@ -22,6 +26,10 @@ TEMPLATE_ID = '1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE'
 
 def main():
     try:
+        if len(sys.argv) != 2:
+            raise ArgumentsError
+
+        folder_name = sys.argv[1]
         creds = retrieve_and_persist_credentials()
         docs_service = build('docs', 'v1', credentials=creds)
         drive_service = build('drive', 'v3', credentials=creds)
@@ -32,6 +40,8 @@ def main():
             copy_document = retrieve_document(docs_service, copy_id)
             print('La quittance {} a été correctement créée 🎉🎉🎉'.format(copy_document.get('title')))
 
+    except ArgumentsError:
+        print('❌ Nom du dossier contenant les informations absent')
     except:
         print('❌ Error durant la création du document')
 

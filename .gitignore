@@ -1,2 +1,4 @@
 credentials.json
 token.json
+input_infos/*
+__pycache__*
