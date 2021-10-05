@@ -4,6 +4,8 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from datetime import date
+import locale
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = [
@@ -23,6 +25,7 @@ def main():
         copy_document = retrieve_document(docs_service, copy_id)
         print('The title of the document is: {}'.format(copy_document.get('title')))
 
+## CREDENTIALS
 def retrieve_and_persist_credentials():
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
@@ -46,16 +49,23 @@ def retrieve_and_persist_credentials():
 
     return creds
 
+## DOCS
 def retrieve_document(docs_service, id):
     return docs_service.documents().get(documentId=id).execute()
 
 def copy_template(drive_service):
-    copy_title = 'Ceci est une copie'
+    copy_title = get_title()
     body = {
         'name': copy_title
     }
     drive_response = drive_service.files().copy(fileId=TEMPLATE_ID, body=body).execute()
     return drive_response.get('id', None)
+
+## EDIT / CUSTOMIZING
+def get_title():
+    locale.setlocale(locale.LC_TIME,'fr_FR')
+    today = date.today()
+    return today.strftime("%B_%Y")
 
 if __name__ == '__main__':
     main()
