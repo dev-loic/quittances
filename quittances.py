@@ -6,7 +6,12 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/documents']
+SCOPES = [
+    'https://www.googleapis.com/auth/documents',
+    'https://www.googleapis.com/auth/drive'
+]
+
+TEMPLATE_ID = '1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE'
 
 def main():
     """Shows basic usage of the Docs API.
@@ -30,15 +35,26 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
-    service = build('docs', 'v1', credentials=creds)
-    template = retrieve_template(service)
+    docs_service = build('docs', 'v1', credentials=creds)
+    drive_service = service = build('drive', 'v3', credentials=creds)
 
-    print('The title of the document is: {}'.format(template.get('title')))
+    copy_id = copy_template(drive_service)
+    if copy_id is not None:
+        copy_document = retrieve_document(docs_service, copy_id)
+        print(copy_document)
+        # print('The title of the document is: {}'.format(copy_document.get('title')))
 
 
-def retrieve_template(service):
-    DOCUMENT_ID = '1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE'
-    return service.documents().get(documentId=DOCUMENT_ID).execute()
+def retrieve_document(docs_service, id):
+    return docs_service.documents().get(documentId=id).execute()
+
+def copy_template(drive_service):
+    copy_title = 'Ceci est une copie'
+    body = {
+        'name': copy_title
+    }
+    drive_response = drive_service.files().copy(fileId=TEMPLATE_ID, body=body).execute()
+    return drive_response.get('id', None)
 
 if __name__ == '__main__':
     main()
