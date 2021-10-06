@@ -45,9 +45,10 @@ def main():
 
         edit_document(docs_service, copy_id)
         copy_document = retrieve_document(docs_service, copy_id)
-        print('La quittance {} a été correctement créée 🎉🎉🎉'.format(copy_document.get('title')))
+        title = copy_document.get('title')
+        print('La quittance {} a été correctement créée 🎉🎉🎉'.format(title))
 
-        send_email(creds)
+        send_email(creds, title)
 
     except CreatingCopyError:
         print('❌ La copie n\'a pas pu être créée')
@@ -111,13 +112,12 @@ def get_title():
     return TODAY.strftime("%B_%Y")
 
 ## SEND EMAIL
-def send_email(creds):
+def send_email(creds, title):
     if TENANT_EMAIL is not None:
         gmail_service = build('gmail', 'v1', credentials=creds)
         message = MIMEText('Ce message est vide 🥸')
         message['to'] = TENANT_EMAIL
-        # Loic Saillant: get_title() should be replace with the real title of the file
-        message['subject'] = "Quittance {}".format(get_title())
+        message['subject'] = "Quittance {}".format(title)
         final = {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
         message = gmail_service.users().messages().send(userId='me', body=final).execute()
