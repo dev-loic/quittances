@@ -152,7 +152,7 @@ def send_email(creds, title):
         with open(TEMP_OUTPUT_FILE_NAME, 'rb') as file:
             attachment.set_payload(file.read())
             file.close()
-            attachment.add_header('Content-Disposition', 'attachment', filename=TEMP_OUTPUT_FILE_NAME)
+            attachment.add_header('Content-Disposition', 'attachment', filename="{0}.pdf".format(title))
             encoders.encode_base64(attachment)
             message.attach(attachment)
 
