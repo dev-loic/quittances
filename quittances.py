@@ -6,6 +6,7 @@ import base64
 from requests import HTTPError
 from email.mime.text import MIMEText
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -48,7 +49,11 @@ def main():
         title = copy_document.get('title')
         print('La quittance {} a été correctement créée 🎉🎉🎉'.format(title))
 
+        download_file(drive_service, copy_id)
+        print('La quittance {} a été correctement téléchargée 🎉🎉🎉'.format(title))
+
         send_email(creds, title)
+        print('La quittance {} a été correctement envoyée 🎉🎉🎉'.format(title))
 
     except CreatingCopyError:
         print('❌ La copie n\'a pas pu être créée')
@@ -110,6 +115,17 @@ def edit_document(docs_service, id):
 
 def get_title():
     return TODAY.strftime("%B_%Y")
+
+## DOWNLOAD
+def download_file(drive_service, file_id):
+    request = drive_service.files().export_media(
+        fileId=file_id, mimeType='application/pdf')
+    fh = open('output.pdf', 'wb')
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+        print("Download %d%%." % int(status.progress() * 100))
 
 ## SEND EMAIL
 def send_email(creds, title):
