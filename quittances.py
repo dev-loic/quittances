@@ -3,8 +3,12 @@ import os.path
 import sys
 import json
 import base64
+import io
 from requests import HTTPError
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email import encoders
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -20,6 +24,8 @@ from edit import get_requests
 
 ## GLOBAL VARIABLES
 TODAY = date.today()
+PDF_MIME_TYPE = 'application/pdf'
+TEMP_OUTPUT_FILE_NAME = 'output.pdf'
 
 # !!! If modifying these scopes, delete the file token.json.
 SCOPES = [
@@ -119,24 +125,37 @@ def get_title():
 ## DOWNLOAD
 def download_file(drive_service, file_id):
     request = drive_service.files().export_media(
-        fileId=file_id, mimeType='application/pdf')
-    fh = open('output.pdf', 'wb')
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while done is False:
-        status, done = downloader.next_chunk()
-        print("Download %d%%." % int(status.progress() * 100))
+        fileId=file_id, mimeType=PDF_MIME_TYPE)
+    with open(TEMP_OUTPUT_FILE_NAME, 'wb') as file:
+        downloader = MediaIoBaseDownload(file, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+            print("Download %d%%." % int(status.progress() * 100))
 
 ## SEND EMAIL
 def send_email(creds, title):
     if TENANT_EMAIL is not None:
         gmail_service = build('gmail', 'v1', credentials=creds)
-        message = MIMEText('Ce message est vide 🥸')
+        message = MIMEMultipart()
         message['to'] = TENANT_EMAIL
         message['subject'] = "Quittance {}".format(title)
-        final = {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
-        message = gmail_service.users().messages().send(userId='me', body=final).execute()
+        text = MIMEText('Ce message contient une PJ 🥸')
+        message.attach(text)
+
+        main_type, sub_type = PDF_MIME_TYPE.split('/', 1)
+        attachment = MIMEBase(main_type, sub_type)
+        with open(TEMP_OUTPUT_FILE_NAME, 'rb') as file:
+            attachment.set_payload(file.read())
+            file.close()
+            attachment.add_header('Content-Disposition', 'attachment', filename=TEMP_OUTPUT_FILE_NAME)
+            encoders.encode_base64(attachment)
+            message.attach(attachment)
+
+            message_body = {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
+
+            gmail_service.users().messages().send(userId='me', body=message_body).execute()
 
 if __name__ == '__main__':
     main()
