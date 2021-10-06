@@ -56,13 +56,13 @@ def main():
         edit_document(docs_service, copy_id)
         copy_document = retrieve_document(docs_service, copy_id)
         title = copy_document.get('title')
-        print('La quittance {} a été correctement créée 🎉🎉🎉'.format(title))
+        print('✅ La quittance {0} a été correctement créée'.format(title))
 
         download_file(drive_service, copy_id)
-        print('La quittance {} a été correctement téléchargée 🎉🎉🎉'.format(title))
+        print('⬇️ La quittance {0} a été correctement téléchargée 🎉🎉🎉'.format(title))
 
         send_email(creds, title)
-        print('La quittance {} a été correctement envoyée 🎉🎉🎉'.format(title))
+        print("📨 La quittance {0} a été correctement envoyée à {1}".format(title, TENANT_EMAIL))
 
     except CreatingCopyError:
         print('❌ La copie n\'a pas pu être créée')
@@ -134,7 +134,7 @@ def download_file(drive_service, file_id):
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            print("Download %d%%." % int(status.progress() * 100))
+            # print("Download %d%%." % int(status.progress() * 100))
 
 ## SEND EMAIL
 def send_email(creds, title):
