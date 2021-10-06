@@ -21,6 +21,7 @@ locale.setlocale(locale.LC_TIME,'fr_FR')
 # Local Imports
 from errors import CreatingCopyError, Error
 from edit import get_requests
+from email_body import TEXT_BODY_FORMAT
 
 ## GLOBAL VARIABLES
 TODAY = date.today()
@@ -37,8 +38,10 @@ SCOPES = [
 ## To edit depending on tenant and rental
 # TEMPLATE_ID corresponds to the id of _template doc on Google Drive
 # TENANT_EMAIL : email of the tenant (None special value if you don't want to send email)
+# TENANT_NAME : firstname of the tenant
 TEMPLATE_ID = "1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE"
 TENANT_EMAIL = "loic.saillant.dev@gmail.com"
+TENANT_NAME = "Toto"
 
 def main():
     try:
@@ -141,7 +144,7 @@ def send_email(creds, title):
         message['to'] = TENANT_EMAIL
         message['subject'] = "Quittance {}".format(title)
 
-        text = MIMEText('Ce message contient une PJ 🥸')
+        text = MIMEText(TEXT_BODY_FORMAT.format(TENANT_NAME, TODAY.strftime('%B')))
         message.attach(text)
 
         main_type, sub_type = PDF_MIME_TYPE.split('/', 1)
