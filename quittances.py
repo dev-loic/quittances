@@ -1,9 +1,7 @@
 from __future__ import print_function
 import os.path
-import sys
 import json
 import base64
-import io
 from requests import HTTPError
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -96,13 +94,6 @@ def retrieve_and_persist_credentials():
             token.write(creds.to_json())
 
     return creds
-
-## INFOS
-def retrieve_infos(folder_name):
-    file_name = "input_infos/{}/infos.json".format(folder_name)
-    with open(file_name) as json_file:
-        data = json.load(json_file)
-        return (data['template_id'], data['tenant_email'])
 
 ## DOCS
 def retrieve_document(docs_service, id):
