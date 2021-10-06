@@ -13,8 +13,8 @@ from datetime import date
 import locale
 locale.setlocale(locale.LC_TIME,'fr_FR')
 
-# LOCAL
-from errors import ArgumentsError, CreatingCopyError, Error
+# Local Imports
+from errors import CreatingCopyError, Error
 from edit import get_requests
 
 ## GLOBAL VARIABLES
@@ -27,19 +27,19 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.send'
 ]
 
+## To edit depending on tenant and rental
+# TEMPLATE_ID corresponds to the id of _template doc on Google Drive
+# TENANT_EMAIL : email of the tenant (None special value if you don't want to send email)
+TEMPLATE_ID = "1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE"
+TENANT_EMAIL = "loic.saillant.dev@gmail.com"
+
 def main():
     try:
-        if len(sys.argv) != 2:
-            raise ArgumentsError
-
-        (template_id, tenant_email) = retrieve_infos(sys.argv[1])
-
         creds = retrieve_and_persist_credentials()
         docs_service = build('docs', 'v1', credentials=creds)
         drive_service = build('drive', 'v3', credentials=creds)
-        gmail_service = build('gmail', 'v1', credentials=creds)
 
-        copy_id = copy_template(drive_service, template_id)
+        copy_id = copy_template(drive_service)
         if copy_id is None:
             raise CreatingCopyError
 
@@ -47,10 +47,8 @@ def main():
         copy_document = retrieve_document(docs_service, copy_id)
         print('La quittance {} a été correctement créée 🎉🎉🎉'.format(copy_document.get('title')))
 
-        send_email(gmail_service, tenant_email)
+        send_email(creds)
 
-    except ArgumentsError:
-        print('❌ Nom du dossier contenant les informations absent')
     except CreatingCopyError:
         print('❌ La copie n\'a pas pu être créée')
     except HTTPError as error:
@@ -95,12 +93,12 @@ def retrieve_infos(folder_name):
 def retrieve_document(docs_service, id):
     return docs_service.documents().get(documentId=id).execute()
 
-def copy_template(drive_service, template_id):
+def copy_template(drive_service):
     copy_title = get_title()
     body = {
         'name': copy_title
     }
-    drive_response = drive_service.files().copy(fileId=template_id, body=body).execute()
+    drive_response = drive_service.files().copy(fileId=TEMPLATE_ID, body=body).execute()
     return drive_response.get('id', None)
 
 ## EDIT / CUSTOMIZING
@@ -113,14 +111,16 @@ def get_title():
     return TODAY.strftime("%B_%Y")
 
 ## SEND EMAIL
-def send_email(gmail_service, tenant_email):
-    message = MIMEText('Ce message est vide 🥸')
-    message['to'] = tenant_email
-    # Loic Saillant: get_title() should be replace with the real title of the file
-    message['subject'] = "Quittance {}".format(get_title())
-    final = {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
+def send_email(creds):
+    if TENANT_EMAIL is not None:
+        gmail_service = build('gmail', 'v1', credentials=creds)
+        message = MIMEText('Ce message est vide 🥸')
+        message['to'] = TENANT_EMAIL
+        # Loic Saillant: get_title() should be replace with the real title of the file
+        message['subject'] = "Quittance {}".format(get_title())
+        final = {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
-    message = gmail_service.users().messages().send(userId='me', body=final).execute()
+        message = gmail_service.users().messages().send(userId='me', body=final).execute()
 
 if __name__ == '__main__':
     main()
