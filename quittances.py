@@ -10,12 +10,12 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from datetime import date
-from calendar import monthrange
 import locale
 locale.setlocale(locale.LC_TIME,'fr_FR')
 
 # LOCAL
 from errors import ArgumentsError, CreatingCopyError, Error
+from edit import get_requests
 
 ## GLOBAL VARIABLES
 TODAY = date.today()
@@ -105,70 +105,12 @@ def copy_template(drive_service, template_id):
 
 ## EDIT / CUSTOMIZING
 def edit_document(docs_service, id):
-    (monthly_fee, rental_charge, monthly_total) = get_fees()
-    requests = [
-        {
-            'replaceAllText': {
-                'containsText': {
-                    'text': '{{period}}',
-                    'matchCase':  'true'
-                },
-                'replaceText': get_period()
-            }
-        },
-        {
-            'replaceAllText': {
-                'containsText': {
-                    'text': '{{monthly-fee}}',
-                    'matchCase':  'true'
-                },
-                'replaceText': monthly_fee
-            }
-        },
-        {
-            'replaceAllText': {
-                'containsText': {
-                    'text': '{{rental-charge}}',
-                    'matchCase':  'true'
-                },
-                'replaceText': rental_charge
-            }
-        },
-        {
-            'replaceAllText': {
-                'containsText': {
-                    'text': '{{monthly-total}}',
-                    'matchCase':  'true'
-                },
-                'replaceText': monthly_total
-            }
-        },
-        {
-            'replaceAllText': {
-                'containsText': {
-                    'text': '{{today-date}}',
-                    'matchCase':  'true'
-                },
-                'replaceText': TODAY.strftime('%d/%m/%y')
-            }
-        }
-    ]
+    requests = get_requests()
     result = docs_service.documents().batchUpdate(
         documentId=id, body={'requests': requests}).execute()
 
 def get_title():
     return TODAY.strftime("%B_%Y")
-
-def get_period():
-    current_month_nb_of_days = monthrange(TODAY.year, TODAY.month)
-    first_day = "1er {}".format(TODAY.strftime("%B %Y"))
-    last_day = "{} {}".format(current_month_nb_of_days[1], TODAY.strftime("%B %Y"))
-    return "{} au {}".format(first_day, last_day)
-
-def get_fees(monthly_total=110.00, rental_charge=7.12):
-    monthly_fee = monthly_total - rental_charge
-    return (str(monthly_fee), str(rental_charge), str(monthly_total))
-
 
 ## SEND EMAIL
 def send_email(gmail_service, tenant_email):
