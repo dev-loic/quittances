@@ -39,7 +39,7 @@ SCOPES = [
 # TEMPLATE_ID corresponds to the id of _template doc on Google Drive
 # TENANT_EMAIL : email of the tenant (None special value if you don't want to send email)
 # TENANT_NAME : firstname of the tenant
-TEMPLATE_ID = "1B2Fw3U51_L7GxDG9DQwKbwTmyPAk8P39bezC52oQEeE"
+TEMPLATE_ID = "1fg4kH1w_4K2OdDsWVXmiEJFpfdKJDPmcf8Zknepiyb8"
 TENANT_EMAIL = "loic.saillant.dev@gmail.com"
 TENANT_NAME = "Toto"
 
