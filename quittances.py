@@ -133,6 +133,7 @@ def send_email(creds, title):
         gmail_service = build('gmail', 'v1', credentials=creds)
         message = MIMEMultipart()
         message['to'] = TENANT_EMAIL
+        message['cc'] = "loic.saillant@gmail.com"
         message['subject'] = "Quittance {}".format(title)
 
         text = MIMEText(TEXT_BODY_FORMAT.format(TENANT_NAME, TODAY.strftime('%B')))
