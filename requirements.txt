@@ -6,18 +6,11 @@ wheel>=0.29
 
 # time/date
 datetime
-calendar
 
 # google
-google
-google_auth_oauthlib
-googleapiclient
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
 
 # api
-email
 requests
-
-# files
-base64
-json
-os

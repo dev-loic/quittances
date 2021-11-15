@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
     content = f.readlines()
 requirements = [x.strip() for x in content if 'git+' not in x]
 
-setup(name='script-quittances',
+setup(name='quittances',
       version="1.0",
       description="Project Description",
       packages=find_packages(),
@@ -13,5 +13,5 @@ setup(name='script-quittances',
       test_suite='tests',
       # include_package_data: to install data from MANIFEST.in
       include_package_data=True,
-      scripts=['scripts/script-quittances-run'],
+      scripts=['scripts/quittances-run'],
       zip_safe=False)
