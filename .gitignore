@@ -3,3 +3,10 @@ token.json
 input_infos/*
 __pycache__*
 output.pdf
+*.egg-info
+.coverage
+.ipynb_checkpoints
+.DS_Store
+raw_data/
+*.csv
+.env

@@ -1,0 +1,23 @@
+# packaging
+pip>=9
+setuptools>=26
+twine
+wheel>=0.29
+
+# time/date
+datetime
+calendar
+
+# google
+google
+google_auth_oauthlib
+googleapiclient
+
+# api
+email
+requests
+
+# files
+base64
+json
+os
