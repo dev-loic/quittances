@@ -1,4 +1,11 @@
 # ----------------------------------
+#      GENERATE RENTAL RECEIPTS
+# ----------------------------------
+
+example:
+	@python quittances/quittances.py --email "YOUR TENANT EMAIL" --name "YOUR TENANT NAME" --id "YOUR TEMPLATE ID"
+
+# ----------------------------------
 #          INSTALL & TEST
 # ----------------------------------
 install_requirements:
