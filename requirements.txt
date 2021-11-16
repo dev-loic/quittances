@@ -1,0 +1,16 @@
+# packaging
+pip>=9
+setuptools>=26
+twine
+wheel>=0.29
+
+# time/date
+datetime
+
+# google
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+
+# api
+requests

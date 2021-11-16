@@ -15,6 +15,7 @@ from google.oauth2.credentials import Credentials
 from datetime import date
 import locale
 locale.setlocale(locale.LC_TIME,'fr_FR')
+import argparse
 
 # Local Imports
 from errors import CreatingCopyError, Error
@@ -33,21 +34,13 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.send'
 ]
 
-## To edit depending on tenant and rental
-# TEMPLATE_ID corresponds to the id of _template doc on Google Drive
-# TENANT_EMAIL : email of the tenant (None special value if you don't want to send email)
-# TENANT_NAME : firstname of the tenant
-TEMPLATE_ID = "1fg4kH1w_4K2OdDsWVXmiEJFpfdKJDPmcf8Zknepiyb8"
-TENANT_EMAIL = "loic.saillant.dev@gmail.com"
-TENANT_NAME = "Toto"
-
-def main():
+def main(tenant_email, tenant_name, template_id):
     try:
         creds = retrieve_and_persist_credentials()
         docs_service = build('docs', 'v1', credentials=creds)
         drive_service = build('drive', 'v3', credentials=creds)
 
-        copy_id = copy_template(drive_service)
+        copy_id = copy_template(drive_service, template_id)
         if copy_id is None:
             raise CreatingCopyError
 
@@ -59,8 +52,8 @@ def main():
         download_file(drive_service, copy_id)
         print('⬇️ La quittance {0} a été correctement téléchargée 🎉🎉🎉'.format(title))
 
-        send_email(creds, title)
-        print("📨 La quittance {0} a été correctement envoyée à {1}".format(title, TENANT_EMAIL))
+        send_email(creds, title, tenant_email, tenant_name)
+        print("📨 La quittance {0} a été correctement envoyée à {1}".format(title, tenant_email))
 
     except CreatingCopyError:
         print('❌ La copie n\'a pas pu être créée')
@@ -99,12 +92,12 @@ def retrieve_and_persist_credentials():
 def retrieve_document(docs_service, id):
     return docs_service.documents().get(documentId=id).execute()
 
-def copy_template(drive_service):
+def copy_template(drive_service, doc_id):
     copy_title = get_title()
     body = {
         'name': copy_title
     }
-    drive_response = drive_service.files().copy(fileId=TEMPLATE_ID, body=body).execute()
+    drive_response = drive_service.files().copy(fileId=doc_id, body=body).execute()
     return drive_response.get('id', None)
 
 ## EDIT / CUSTOMIZING
@@ -128,15 +121,15 @@ def download_file(drive_service, file_id):
             # print("Download %d%%." % int(status.progress() * 100))
 
 ## SEND EMAIL
-def send_email(creds, title):
-    if TENANT_EMAIL is not None:
+def send_email(creds, title, tenant_email, tenant_name):
+    if tenant_email is not None:
         gmail_service = build('gmail', 'v1', credentials=creds)
         message = MIMEMultipart()
-        message['to'] = TENANT_EMAIL
+        message['to'] = tenant_email
         message['cc'] = "loic.saillant@gmail.com"
         message['subject'] = "Quittance {}".format(title)
 
-        text = MIMEText(TEXT_BODY_FORMAT.format(TENANT_NAME, TODAY.strftime('%B')))
+        text = MIMEText(TEXT_BODY_FORMAT.format(tenant_name, TODAY.strftime('%B')))
         message.attach(text)
 
         main_type, sub_type = PDF_MIME_TYPE.split('/', 1)
@@ -153,4 +146,18 @@ def send_email(creds, title):
             gmail_service.users().messages().send(userId='me', body=message_body).execute()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description="Give email and google doc to duplicate id")
+    parser.add_argument('--email',
+                        help='Email of renter',
+                        required=True)
+    parser.add_argument('--name',
+                        help='Name of renter',
+                        required=True)
+    parser.add_argument('--id',
+                        help='Id of the google doc to duplicate',
+                        required=True)
+    args = parser.parse_args()
+    tenant_email = args.email
+    tenant_name = args.name
+    template_id = args.id
+    main(tenant_email, tenant_name, template_id)
